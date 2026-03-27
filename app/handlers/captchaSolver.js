@@ -1,3 +1,4 @@
+import { EA_FC_WEB_APP_URL } from "../app.constants";
 import { idProgressAutobuyer } from "../elementIds.constants";
 import { getBuyerSettings, getValue } from "../services/repository";
 import { showCaptchaLogs, writeToLog } from "../utils/logUtil";
@@ -6,7 +7,7 @@ import { startAutoBuyer } from "./autobuyerProcessor";
 export const solveCaptcha = () => {
   const buyerSetting = getBuyerSettings();
   let apikey = buyerSetting["idAntiCaptchKey"];
-  let websiteURL = "https://www.ea.com/fifa/ultimate-team/web-app/";
+  let websiteURL = EA_FC_WEB_APP_URL;
   let websitePublicKey = "A4EECF77-AC87-8C8D-5754-BF882F72063B";
 
   let proxyAddress = buyerSetting["idProxyAddress"];

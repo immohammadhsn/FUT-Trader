@@ -1,5 +1,8 @@
 export const MAX_CLUB_SEARCH = 90;
 export const MAX_MARKET_SEARCH = 20;
+export const CURRENT_UT_YEAR = "26";
+export const SUPPORTED_UT_YEARS = ["26", "25", "24", "23"];
+export const EA_FC_WEB_APP_URL = "https://www.ea.com/ea-sports-fc/ultimate-team/web-app/";
 
 export const STATE_ACTIVE = "Active";
 export const STATE_PAUSED = "Paused";

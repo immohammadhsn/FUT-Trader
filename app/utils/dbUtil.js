@@ -1,4 +1,4 @@
-import phoneDBUtil from "./phoneDBUtil";
+import phoneDBUtil from "./phoneDbUtil";
 
 export const initDatabase = () => phoneDBUtil.initDatabase();
 

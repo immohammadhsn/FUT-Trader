@@ -1,8 +1,8 @@
 import { isMarketAlertApp } from "../../app.constants";
 import { getValue, setValue } from "../../services/repository";
 
-const personaUrl = "/ut/game/fifa23/usermassinfo";
-const squadMembersUrl = "/ut/game/fifa23/tradepile";
+const personaUrlRegex = /\/ut\/game\/(?:fifa|fc)\d+\/usermassinfo(?:[/?#]|$)/i;
+const squadMembersUrlRegex = /\/ut\/game\/(?:fifa|fc)\d+\/tradepile(?:[/?#]|$)/i;
 const profileUrl = "https://gateway.ea.com/proxy/identity/pids/me";
 
 export const xmlRequestOverride = () => {
@@ -10,10 +10,13 @@ export const xmlRequestOverride = () => {
 
   window.XMLHttpRequest.prototype.open = function (method, url, async) {
     this.addEventListener(
-      "readystatechange",
-      function () {
+        "readystatechange",
+        function () {
         if (this.readyState === 4) {
-          if (isMarketAlertApp && this.responseURL.includes(personaUrl)) {
+          if (
+            isMarketAlertApp &&
+            personaUrlRegex.test(this.responseURL || "")
+          ) {
             let parsedResponse = JSON.parse(this.responseText);
             if (parsedResponse) {
               const { personaId, personaName } = parsedResponse.userInfo;
@@ -32,7 +35,7 @@ export const xmlRequestOverride = () => {
             }
           } else if (
             isMarketAlertApp &&
-            this.responseURL.includes(squadMembersUrl)
+            squadMembersUrlRegex.test(this.responseURL || "")
           ) {
             let parsedResponse = JSON.parse(this.responseText);
             if (parsedResponse) {

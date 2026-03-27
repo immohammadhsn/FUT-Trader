@@ -1,18 +1,25 @@
 const headers = require("./tampermonkey-header");
-const WebpackUserscript = require("webpack-userscript");
+const { UserscriptPlugin } = require("webpack-userscript");
 const TerserPlugin = require("terser-webpack-plugin");
+const path = require("path");
 
 module.exports = {
   entry: "./app/index.js",
   output: {
-    filename: "./fut-auto-buyer.user.js",
+    filename: "fut-auto-buyer.user.js",
+    path: path.resolve(__dirname, "dist"),
+    clean: true,
+    hashFunction: "xxhash64",
   },
   devServer: {
-    contentBase: "./dist/",
+    static: {
+      directory: path.resolve(__dirname, "dist"),
+    },
   },
   plugins: [
-    new WebpackUserscript({
+    new UserscriptPlugin({
       ...headers,
+      headers: headers.headers,
     }),
   ],
   optimization: {

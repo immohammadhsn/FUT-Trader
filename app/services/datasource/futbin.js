@@ -1,9 +1,20 @@
+import { SUPPORTED_UT_YEARS } from "../../app.constants";
 import { getCardName } from "../../utils/futItemUtil";
 import { sendRequest } from "../../utils/networkUtil";
 import { getUserPlatform } from "../../utils/userUtil";
 import { getValue, setValue } from "../repository";
 
 const supportedConsumables = new Set(["Position", "Chemistry Style"]);
+
+const sendRequestWithSeasonFallback = async (buildUrl, identifier) => {
+  for (const season of SUPPORTED_UT_YEARS) {
+    try {
+      return await sendRequest(buildUrl(season), "GET", `${identifier}_${season}`);
+    } catch (err) {}
+  }
+
+  throw new Error(`Unable to fetch data for seasons: ${SUPPORTED_UT_YEARS.join(", ")}`);
+};
 
 const fetchPrices = async (items) => {
   const result = new Map();
@@ -60,9 +71,9 @@ const fetchPlayerPrices = async (playerIds, result) => {
     }
     const refIds = playersIdArray.join(",");
     try {
-      const futBinResponse = await sendRequest(
-        `https://www.futbin.com/23/playerPrices?player=${primaryId}&rids=${refIds}`,
-        "GET",
+      const futBinResponse = await sendRequestWithSeasonFallback(
+        (season) =>
+          `https://www.futbin.com/${season}/playerPrices?player=${primaryId}&rids=${refIds}`,
         `${Math.floor(+new Date())}_fetchPlayerPrices`
       );
 
@@ -99,9 +110,9 @@ const fetchConsumablesPrices = async (missingConsumables, result) => {
   for (const consumableType of consumableTypes) {
     try {
       const category = consumableType.split(" ")[0];
-      const futBinResponse = await sendRequest(
-        `https://www.futbin.org/futbin/api/fetchConsumables?category=${category}&platformtype=${futBinPlatform}`,
-        "GET",
+      const futBinResponse = await sendRequestWithSeasonFallback(
+        () =>
+          `https://www.futbin.org/futbin/api/fetchConsumables?category=${category}&platformtype=${futBinPlatform}`,
         `${Math.floor(+new Date())}_fetchConsumablesPrices`
       );
 

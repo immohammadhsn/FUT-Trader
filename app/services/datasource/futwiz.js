@@ -1,7 +1,18 @@
+import { SUPPORTED_UT_YEARS } from "../../app.constants";
 import { sendRequest } from "../../utils/networkUtil";
 import { getUserPlatform } from "../../utils/userUtil";
 import { sendExternalRequest } from "../externalRequest";
 import { getValue, setValue } from "../repository";
+
+const sendRequestWithSeasonFallback = async (buildUrl, identifier) => {
+  for (const season of SUPPORTED_UT_YEARS) {
+    try {
+      return await sendRequest(buildUrl(season), "GET", `${identifier}_${season}`);
+    } catch (err) {}
+  }
+
+  throw new Error(`Unable to fetch data for seasons: ${SUPPORTED_UT_YEARS.join(", ")}`);
+};
 
 const fetchPrices = async (items) => {
   const result = new Map();
@@ -38,9 +49,9 @@ const getPlayerPrices = async (player, result) => {
     if (!filteredPlayer) {
       return;
     }
-    const futWizResponse = await sendRequest(
-      `https://www.futwiz.com/en/app/sold23/${filteredPlayer[0].lineid}/console`,
-      "GET",
+    const futWizResponse = await sendRequestWithSeasonFallback(
+      (season) =>
+        `https://www.futwiz.com/en/app/sold${season}/${filteredPlayer[0].lineid}/console`,
       `${player.definitionId}_fetchFutWizPlayerPrices`
     );
     const priceResponse = JSON.parse(futWizResponse);
@@ -72,37 +83,46 @@ const getMatchingPlayer = (item) => {
         ? item._staticData.knownAs
         : item._staticData.name
     );
-    sendExternalRequest({
-      url: `https://www.futwiz.com/en/searches/player23/${playerName}`,
-      method: "GET",
-      identifier: `${item.definitionId}_getFutWizPlayerUrl`,
-      onload: (res) => {
-        if (res.status !== 200) {
-          return resolve();
-        }
-        const players = JSON.parse(res.response);
+    const trySeason = (seasonIndex = 0) => {
+      if (seasonIndex >= SUPPORTED_UT_YEARS.length) {
+        return resolve();
+      }
 
-        if (!players) {
-          return resolve();
-        }
+      const season = SUPPORTED_UT_YEARS[seasonIndex];
+      sendExternalRequest({
+        url: `https://www.futwiz.com/en/searches/player${season}/${playerName}`,
+        method: "GET",
+        identifier: `${item.definitionId}_getFutWizPlayerUrl_${season}`,
+        onload: (res) => {
+          if (res.status !== 200) {
+            return trySeason(seasonIndex + 1);
+          }
+          const players = JSON.parse(res.response);
 
-        let filteredPlayers = players.filter(
-          (p) => parseInt(p.rating) === item.rating
-        );
+          if (!players) {
+            return trySeason(seasonIndex + 1);
+          }
 
-        if (players && !filteredPlayers.length) {
-          filteredPlayers = players;
-        }
-
-        if (filteredPlayers && filteredPlayers.length > 1) {
-          filteredPlayers = filteredPlayers.filter(
-            (p) =>
-              p.rare === item.rareflag.toString() && p.club === item.teamId + ""
+          let filteredPlayers = players.filter(
+            (p) => parseInt(p.rating) === item.rating
           );
-        }
-        resolve(filteredPlayers);
-      },
-    });
+
+          if (players && !filteredPlayers.length) {
+            filteredPlayers = players;
+          }
+
+          if (filteredPlayers && filteredPlayers.length > 1) {
+            filteredPlayers = filteredPlayers.filter(
+              (p) =>
+                p.rare === item.rareflag.toString() && p.club === item.teamId + ""
+            );
+          }
+          resolve(filteredPlayers);
+        },
+      });
+    };
+
+    trySeason();
   });
 };
 

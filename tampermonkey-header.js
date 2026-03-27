@@ -6,6 +6,8 @@ module.exports = {
     description: "FUT Auto Buyer",
     author: "CK Algos",
     match: [
+      "https://www.ea.com/*/ea-sports-fc/ultimate-team/web-app/*",
+      "https://www.ea.com/ea-sports-fc/ultimate-team/web-app/*",
       "https://www.ea.com/*/fifa/ultimate-team/web-app/*",
       "https://www.ea.com/fifa/ultimate-team/web-app/*",
     ],
@@ -30,6 +32,6 @@ module.exports = {
       "https://github.com/ckalgos/fut-auto-buyer/releases/latest/download/fut-auto-buyer.user.js",
     downloadURL:
       "https://github.com/ckalgos/fut-auto-buyer/releases/latest/download/fut-auto-buyer.user.js",
-    noFrame: true,
+    noframes: true,
   },
 };
